@@ -5,51 +5,51 @@
 #include "LuzPuntual.h"
 #include "Triangulo.h"
 #include "Plano.h" 
-
-#include<iostream>
+#include "Image.h"
 #include <math.h>
 #include <vector>
 #include <iostream>
 using namespace std;
 
-ColorRGB obtenerColorPixel(const Rayo& r, vector<ObjetoGeometrico*> objetos, LuzPuntual luz, LuzPuntual luz_ambiente){
+ColorRGB obtenerColorPixel( const Rayo& r, vector<ObjetoGeometrico*> objetos, LuzPuntual luz, LuzPuntual luz_ambiente){
     
     ColorRGB color;
-
     color.r = 0.0;
     color.g = 0.0;
     color.b = 0.0;
-
     double t;
     double tmin = 2000000;    
     Vector3D n;
     Punto3D q;
+ 
 
+    ColorRGB finalColor;
+    finalColor.r=1.0;
+    finalColor.g=1.0;
+    finalColor.b=1.0;
+    double u;
+    double v;
+    int column;
+    int row;
+    int px;
+    double PI = 3.14159265358979323846;
     Vector3D h;
     for(int i = 0; i < objetos.size(); i++) {
-        if( objetos[i]->hayImpacto(r, t, n, q) && t < tmin){    
-            // color.r = objetos[i]->obtenerColor().r;
-            // color.g = objetos[i]->obtenerColor().g;
-            // color.b = objetos[i]->obtenerColor().b;
-
-            // color.r = objetos[i]->obtenerColor().r * luz.color.r * std::max(0.0, n * (luz.posicion - q).hat() );
-            // color.g = objetos[i]->obtenerColor().g * luz.color.g * std::max(0.0, n * (luz.posicion - q).hat() );
-            // color.b = objetos[i]->obtenerColor().b * luz.color.b * std::max(0.0, n * (luz.posicion - q).hat() );
-
-
-            // color.r = objetos[i]->obtenerColor().r * luz.color.r * std::max(0.0, n * (luz.posicion - q).hat() ) + objetos[i]->obtenerColor().r * luz.color.r * pow(std::max(0.0, n * ((-1)*r.d + (luz.posicion - q).hat()).hat() ),10000);
-            // color.g = objetos[i]->obtenerColor().g * luz.color.g * std::max(0.0, n * (luz.posicion - q).hat() ) + objetos[i]->obtenerColor().g * luz.color.g * pow(std::max(0.0, n * ((-1)*r.d + (luz.posicion - q).hat()).hat() ),10000);
-            // color.b = objetos[i]->obtenerColor().b * luz.color.b * std::max(0.0, n * (luz.posicion - q).hat() ) + objetos[i]->obtenerColor().b * luz.color.b * pow(std::max(0.0, n * ((-1)*r.d + (luz.posicion - q).hat()).hat() ),10000);
+        if( objetos[i]->hayImpacto(r, t, n, q) && t < tmin){  
+             
+            u = objetos[i]->calcularU(n);
+            v = objetos[i]->calcularV(n);
+            if(objetos[i]->tieneTextura()){
+                finalColor=objetos[i]->obtenerColorTextura(u,v); 
+            }
+            else{
+                finalColor=objetos[i]->obtenerColor();
+            }
             
-            
-            // color.r = objetos[i]->obtenerColor().r * luz_ambiente.color.r;
-            // color.g = objetos[i]->obtenerColor().g * luz_ambiente.color.g;
-            // color.b = objetos[i]->obtenerColor().b * luz_ambiente.color.b;
- 
             if(i<objetos.size()-2){
-                color.r = objetos[i]->obtenerColor().r * luz_ambiente.color.r;
-                color.g = objetos[i]->obtenerColor().g * luz_ambiente.color.g;
-                color.b = objetos[i]->obtenerColor().b * luz_ambiente.color.b;
+                color.r = finalColor.r * luz_ambiente.color.r;
+                color.g = finalColor.g * luz_ambiente.color.g;
+                color.b = finalColor.b * luz_ambiente.color.b;
                 double t_sombra;
                 double t_min_sombra = 2000000;
                 Vector3D n_sombra;
@@ -57,9 +57,9 @@ ColorRGB obtenerColorPixel(const Rayo& r, vector<ObjetoGeometrico*> objetos, Luz
                 Rayo rayo_sombra(q, (luz.posicion - q)) ;
                 for (int j = 0; j < objetos.size(); j++) {
                     if ((objetos[j]->hayImpacto(rayo_sombra, t_sombra, n_sombra, q_sombra) && t_sombra < t_min_sombra)) {
-                        color.r = objetos[i]->obtenerColor().r * luz_ambiente.color.r + objetos[i]->obtenerColor().r * luz.color.r * std::max(0.0, n * (luz.posicion - q).hat() ) + objetos[i]->obtenerColor().r * luz.color.r * pow(std::max(0.0, n * ((-1)*r.d + (luz.posicion - q).hat()).hat() ),100);
-                        color.g = objetos[i]->obtenerColor().g * luz_ambiente.color.g + objetos[i]->obtenerColor().g * luz.color.g * std::max(0.0, n * (luz.posicion - q).hat() ) + objetos[i]->obtenerColor().g * luz.color.g * pow(std::max(0.0, n * ((-1)*r.d + (luz.posicion - q).hat()).hat() ),100);
-                        color.b = objetos[i]->obtenerColor().b * luz_ambiente.color.b + objetos[i]->obtenerColor().b * luz.color.b * std::max(0.0, n * (luz.posicion - q).hat() ) + objetos[i]->obtenerColor().b * luz.color.b * pow(std::max(0.0, n * ((-1)*r.d + (luz.posicion - q).hat()).hat() ),100);
+                        color.r = finalColor.r * luz_ambiente.color.r + finalColor.r * luz.color.r * std::max(0.0, n * (luz.posicion - q).hat() ) + finalColor.r * luz.color.r * pow(std::max(0.0, n * ((-1)*r.d + (luz.posicion - q).hat()).hat() ),100);
+                        color.g = finalColor.g * luz_ambiente.color.g + finalColor.g * luz.color.g * std::max(0.0, n * (luz.posicion - q).hat() ) + finalColor.g * luz.color.g * pow(std::max(0.0, n * ((-1)*r.d + (luz.posicion - q).hat()).hat() ),100);
+                        color.b = finalColor.b * luz_ambiente.color.b + finalColor.b * luz.color.b * std::max(0.0, n * (luz.posicion - q).hat() ) + finalColor.b * luz.color.b * pow(std::max(0.0, n * ((-1)*r.d + (luz.posicion - q).hat()).hat() ),100);
                         t_min_sombra = t_sombra;
                     }
                 }
@@ -82,7 +82,6 @@ ColorRGB obtenerColorPixel(const Rayo& r, vector<ObjetoGeometrico*> objetos, Luz
                         t_min_sombra = t_sombra;
                     }
                 }
-
             }
             tmin = t;
         }
@@ -129,6 +128,30 @@ int main() {
     Punto3D centro7(-125.0, -180.0, -400.0); 
     Esfera esfera7(centro7, radio1);   
     esfera7.establecerColor(0.976, 0.474, 0.082);
+
+    Image img;
+    Image img2;
+    Image img3;
+    Image img4;
+    Image img5;
+    Image img6;
+    Image img7;
+
+    img.read_ppm_file("1estrella.ppm");
+    img2.read_ppm_file("2estrella.ppm");
+    img3.read_ppm_file("3estrella.ppm");
+    img4.read_ppm_file("4estrella.ppm");
+    img5.read_ppm_file("5estrella.ppm");
+    img6.read_ppm_file("6estrella.ppm");
+    img7.read_ppm_file("7estrella.ppm");
+
+    esfera2.establecerTextura(img);
+    esfera3.establecerTextura(img2);
+    esfera4.establecerTextura(img3);
+    esfera5.establecerTextura(img6);
+    esfera1.establecerTextura(img7);
+    esfera6.establecerTextura(img4);
+    esfera7.establecerTextura(img5);
 
     //7 estrellas---------------------------------------------------------------------
 
@@ -621,63 +644,63 @@ int main() {
     Punto3D tz1b( -75, -280, -470);
     Punto3D tz1c( 300, 280, -500);
     Triangulo tz1( tz1a, tz1b, tz1c );
-    tz1.establecerColor(1.0,0.0,0.0);
+    tz1.establecerColor(0.9,0.0,0.0);
 //(125.0, 180.0, -400.0)
     Punto3D tz2a( 75, 280,  -500);     
     Punto3D tz2b( -300, -280, -470);
     Punto3D tz2c( 300, 280, -500);
     Triangulo tz2( tz2a, tz2b, tz2c );
-    tz2.establecerColor(1.0,0.0,0.0);
+    tz2.establecerColor(0.9,0.0,0.0);
     //parte alta
 //(-125.0, 180.0, -400.0)
     Punto3D tz3a( -225, 280,  -500);     
     Punto3D tz3b( -180, 140, -500);
     Punto3D tz3c( 75, 280, -500);
     Triangulo tz3( tz3a, tz3b, tz3c );
-    tz3.establecerColor(1.0,0.0,0.0);
+    tz3.establecerColor(0.9,0.0,0.0);
 
     Punto3D tz4a( -225, 140,  -500);     
     Punto3D tz4b( 75, 140, -500);
     Punto3D tz4c( 75, 280, -500);
     Triangulo tz4( tz4a, tz4b, tz4c );
-    tz4.establecerColor(1.0,0.0,0.0);
+    tz4.establecerColor(0.9,0.0,0.0);
 
     Punto3D tz5a( -225, 280,  -500);     
     Punto3D tz5b( -275.0, -80.0, -500);
     Punto3D tz5c( 0, 280, -500);
     Triangulo tz5( tz5a, tz5b, tz5c );
-    tz5.establecerColor(1.0,0.0,0.0);
+    tz5.establecerColor(0.9,0.0,0.0);
 //parte media
     Punto3D tz6a( -120, 80,  -500);     
     Punto3D tz6b( -80, -20, -500);
     Punto3D tz6c( 0, 80, -500);
     Triangulo tz6( tz6a, tz6b, tz6c );
-    tz6.establecerColor(1.0,0.0,0.0);
+    tz6.establecerColor(0.9,0.0,0.0);
 
     Punto3D tz7a( 0, -80,  -500);     
     Punto3D tz7b( 120, -80, -500);
     Punto3D tz7c( 80, 20, -500);
     Triangulo tz7( tz7a, tz7b, tz7c );
-    tz7.establecerColor(1.0,0.0,0.0);
+    tz7.establecerColor(0.9,0.0,0.0);
 //parte baja
 //(-125.0, -180.0, -400.0)
     Punto3D tz8a( -125, -280,  -470);     
     Punto3D tz8b( 225, -280, -470);
     Punto3D tz8c( 225, -140, -500);
     Triangulo tz8( tz8a, tz8b, tz8c );
-    tz8.establecerColor(1.0,0.0,0.0);
+    tz8.establecerColor(0.9,0.0,0.0);
 
     Punto3D tz9a( -125, -140,  -500);     
     Punto3D tz9b( -125, -280, -470);
     Punto3D tz9c( 225, -140, -500);
     Triangulo tz9( tz9a, tz9b, tz9c );
-    tz9.establecerColor(1.0,0.0,0.0);
+    tz9.establecerColor(0.9,0.0,0.0);
 
     Punto3D tz10a( 10, -280,  -470);     
     Punto3D tz10b( 225, -280, -470);
     Punto3D tz10c( 270, 120, -500);
     Triangulo tz10( tz10a, tz10b, tz10c );
-    tz10.establecerColor(1.0,0.0,0.0);
+    tz10.establecerColor(0.9,0.0,0.0);
 
  
     

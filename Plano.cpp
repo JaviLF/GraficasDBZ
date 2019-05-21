@@ -36,4 +36,34 @@ ColorRGB Plano::obtenerColor()
     c.b = color.b;
     return  c;
 }
+ 
 
+double Plano::calcularU(Vector3D& n){
+    return 0;
+}
+
+double Plano::calcularV(Vector3D& n){
+    return 0;
+}
+
+
+ColorRGB Plano::obtenerColorTextura(double u,double v){
+    int column = u * img.hres;
+    int row = v * img.vres; 
+    return img.get_color(row,column);
+}
+
+void Plano::establecerTextura(Image& img2){
+    img = img2;
+    if(img.pixels.empty()){
+        textura=false;
+    }
+    else
+    {
+        textura=true;
+    } 
+}
+
+bool Plano::tieneTextura(){
+    bool textura;
+}
